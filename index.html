@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1, user-scalable=no">
+<meta name="color-scheme" content="dark light">
+<meta name="theme-color" content="#070B1E">
+<meta name="description" content="RIFTLIGHT — a multi-file pixel precision platformer. Dash, climb, resonate, build levels and chase S ranks.">
+<meta property="og:title" content="隙光行者 RIFTLIGHT">
+<meta property="og:description" content="Celeste-inspired precision platforming — four themes, three languages, procedural audio, sandbox lab and level editor.">
+<meta property="og:type" content="website">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>隙光行者 RIFTLIGHT</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%23070B1E'/%3E%3Cpath d='M16 4l3 9 9 3-9 3-3 9-3-9-9-3 9-3z' fill='%2322D3EE'/%3E%3C/svg%3E">
+<link rel="preload" as="image" href="assets/player.png">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body data-theme="arcane" data-lang="zh-TW">
+<noscript><p style="position:fixed;inset:0;display:grid;place-content:center;background:#070B1E;color:#E8ECFF;font:14px monospace;z-index:99">RIFTLIGHT requires JavaScript.</p></noscript>
+<div id="app">
+  <canvas id="game" aria-label="Riftlight game canvas"></canvas>
+  <div id="bg-grain" aria-hidden="true"></div>
+  <div id="flash" aria-hidden="true"></div>
+
+  <section id="hud" class="hidden" aria-label="HUD">
+    <div class="hud-top">
+      <div class="hud-block vitals">
+        <div class="vital-line">
+          <span class="vital-label" data-i18n="hud.stamina">體力</span>
+          <div class="meter stamina"><i id="hud-stamina"></i></div>
+        </div>
+        <div class="vital-line">
+          <span class="vital-label" data-i18n="hud.dash">衝刺</span>
+          <div id="hud-dashes" class="pips"></div>
+        </div>
+        <div class="vital-line resonance-line">
+          <span class="vital-label" data-i18n="hud.resonance">共鳴</span>
+          <div class="meter resonance"><i id="hud-resonance"></i><b id="hud-fever" class="fever-tag hidden">FEVER</b></div>
+        </div>
+      </div>
+      <div class="hud-center">
+        <div id="hud-room" class="hud-room">1-1</div>
+        <div class="hud-sub"><span id="hud-timer">00:00</span><span class="dot">·</span><span id="hud-deaths">0</span><span data-i18n="hud.deaths">死</span></div>
+      </div>
+      <div class="hud-actions">
+        <div class="hud-shards"><span class="shard-ico">◆</span><span id="hud-shards">0</span></div>
+        <button id="btn-burst" class="burst-btn hidden" data-i18n-title="hud.burst">✹</button>
+        <button id="btn-pause" class="icon-btn" data-i18n-title="hud.pause" aria-label="Pause">Ⅱ</button>
+      </div>
+    </div>
+    <div id="boss-wrap" class="boss-wrap hidden">
+      <div class="boss-name" id="boss-name">裂界巨像</div>
+      <div class="boss-bar"><i id="boss-fill"></i></div>
+    </div>
+    <div id="hint-strip" class="hint-strip hidden"></div>
+    <div id="combo-pop" class="combo-pop"></div>
+  </section>
+
+  <div id="touch-controls" class="touch-controls hidden" aria-label="Touch controls">
+    <div id="joystick" class="joystick">
+      <div class="stick-base"><i id="stick-knob"></i></div>
+      <div class="stick-hint" data-i18n="touch.move">移動</div>
+    </div>
+    <div class="touch-actions">
+      <button class="tbtn tbtn-grab" data-touch="grab" data-i18n="touch.grab">抓</button>
+      <button class="tbtn tbtn-dash" data-touch="dash" data-i18n="touch.dash">衝</button>
+      <button class="tbtn tbtn-jump" data-touch="jump" data-i18n="touch.jump">跳</button>
+      <button class="tbtn tbtn-burst" data-touch="burst" data-i18n="touch.burst">爆</button>
+    </div>
+  </div>
+
+  <section id="menu" class="screen menu-screen" aria-label="Main menu">
+    <div class="menu-topbar">
+      <div class="brand-mini"><span class="brand-mark">✦</span><span>RIFTLIGHT</span></div>
+      <div class="top-tools">
+        <div id="lang-switch" class="segmented" role="group" aria-label="Language">
+          <button data-lang="zh-TW">繁</button><button data-lang="zh-CN">简</button><button data-lang="en">EN</button>
+        </div>
+        <button id="btn-theme" class="icon-btn theme-btn" data-i18n-title="menu.theme" aria-label="Theme">◐</button>
+        <button id="btn-mute" class="icon-btn" data-i18n-title="menu.mute" aria-label="Mute">♪</button>
+      </div>
+    </div>
+    <div class="menu-hero">
+      <p class="eyebrow" data-i18n="menu.eyebrow">A PIXEL PRECISION PLATFORMER</p>
+      <h1 class="logo"><span class="logo-en">RIFT<span>LIGHT</span></span><span class="logo-cn" data-i18n="menu.title">隙光行者</span></h1>
+      <p class="tagline" data-i18n="menu.tagline">每一次墜落，都是下一次躍起的節拍。</p>
+      <div class="menu-primary">
+        <button class="btn btn-hero" data-action="story"><span class="btn-glyph">▶</span><span data-i18n="menu.story">開始冒險</span></button>
+        <button class="btn btn-ghost" data-action="daily"><span class="btn-glyph">◈</span><span data-i18n="menu.daily">每日裂隙</span></button>
+        <button class="btn btn-ghost" data-action="endless"><span class="btn-glyph">∞</span><span data-i18n="menu.endless">無盡天穹</span></button>
+        <button class="btn btn-ghost" data-action="sandbox"><span class="btn-glyph">✦</span><span data-i18n="menu.sandbox">裂隙實驗場</span></button>
+        <button class="btn btn-ghost" data-action="editor"><span class="btn-glyph">✎</span><span data-i18n="menu.editor">裂隙工坊</span></button>
+      </div>
+      <div class="menu-secondary">
+        <button class="link-btn" data-action="codex" data-i18n="menu.codex">圖鑑</button>
+        <button class="link-btn" data-action="achievements" data-i18n="menu.achievements">成就</button>
+        <button class="link-btn" data-action="collection" data-i18n="menu.collection">收藏</button>
+        <button class="link-btn" data-action="ability" data-i18n="menu.ability">能力樹</button>
+        <button class="link-btn" data-action="settings" data-i18n="menu.settings">設定</button>
+      </div>
+      <div class="menu-status">
+        <span id="menu-progress">—</span>
+        <span class="menu-status-dot">·</span>
+        <span id="menu-best">—</span>
+        <span class="menu-status-dot">·</span>
+        <span class="menu-version">v2.0</span>
+      </div>
+    </div>
+    <div class="menu-footer">
+      <span data-i18n="menu.footer">鍵盤 · 滑鼠 · 觸控｜繁中 · 简中 · EN｜四種視覺主題</span>
+    </div>
+  </section>
+
+  <div id="modal" class="modal hidden" role="dialog" aria-modal="true">
+    <div class="modal-card">
+      <header class="modal-head">
+        <h2 id="modal-title">—</h2>
+        <button id="modal-close" class="icon-btn" aria-label="Close">×</button>
+      </header>
+      <div id="modal-body" class="modal-body"></div>
+      <footer id="modal-foot" class="modal-foot hidden"></footer>
+    </div>
+  </div>
+
+  <div id="achievement-toast" class="achievement-toast hidden">
+    <div class="ach-glow">✦</div>
+    <div><div class="ach-kicker" data-i18n="ach.unlocked">成就解鎖</div><div id="ach-toast-name">—</div></div>
+  </div>
+  <div id="toasts" class="toasts" aria-live="polite"></div>
+  <div id="fps" class="fps hidden">60 FPS</div>
+  <div id="rotate-hint" class="rotate-hint hidden"><div>↻</div><p data-i18n="touch.rotate">轉為橫向可獲得更大視野</p></div>
+</div>
+
+<script src="js/00-core.js" defer></script>
+<script src="js/00-assets.js" defer></script>
+<script src="js/01-i18n.js" defer></script>
+<script src="js/02-themes.js" defer></script>
+<script src="js/03-audio.js" defer></script>
+<script src="js/04-save.js" defer></script>
+<script src="js/05-levels.js" defer></script>
+<script src="js/06-engine.js" defer></script>
+<script src="js/07-render.js" defer></script>
+<script src="js/08-ui.js" defer></script>
+<script src="js/09-editor.js" defer></script>
+<script src="js/10-boot.js" defer></script>
+</body>
+</html>
